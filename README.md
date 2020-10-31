@@ -34,16 +34,7 @@
 - [x] Configure Ethernet Jumbo Frames
 - [x] ~~Large Pages~~ (Not necessary, because Kubernetes can configure this on a container-basis.)
 
-ansible-galaxy collection install community.general
-ansible-galaxy collection install ansible.posix
-ansible-galaxy collection install community.kubernetes
-
 See: https://github.com/trimstray/linux-hardening-checklist
-curl https://launchpad.net/veracrypt/trunk/1.24-update7/+download/veracrypt-console-1.24-Update7-Ubuntu-20.04-amd64.deb -o ./veracrypt.deb
-
-Put `ssh` file into boot sector of Raspberry Pi.
-
 https://viktorvan.github.io/kubernetes/kubernetes-on-raspberry-pi/
-
 https://www.chrisjhart.com/Windows-10-ssh-copy-id/:
 type $env:USERPROFILE\.ssh\id_rsa.pub | ssh {IP-ADDRESS-OR-FQDN} "cat >> .ssh/authorized_keys"

@@ -129,15 +129,15 @@
         purge: yes
         state: absent
     - name: Ensure ASLR
-      ansible.posix.sysctl:
+      sysctl:
         name: kernel.randomize_va_space
         value: "1"
     - name: Ensure ExecShield
-      ansible.posix.sysctl:
+      sysctl:
         name: kernel.exec-shield
         value: "1"
     - name: Disable IP Forwarding
-      ansible.posix.sysctl:
+      sysctl:
         name: net.ipv4.ip_forward
         value: "0"
     - name: Periodically delete command history
@@ -170,20 +170,20 @@
         name: mdadm
         update_cache: yes
         state: latest
-    - name: Create USB Drive Partition "{{ store.device }}"1
+    - name: "Create USB Drive Partition {{ store.device }}1"
       community.general.parted:
         device: "{{ store.device }}"
         number: 1
         state: present
         fs_type: "{{ store.fs }}"
       loop: "{{ stores }}"
-    - name: Format USB Drive Partition "{{ store.device }}"1 as XFS
+    - name: "Format USB Drive Partition {{ store.device }}1 as XFS"
       community.general.filesystem:
         fstype: "{{ store.fs }}"
         dev: "{{ store.device }}1"
       loop: "{{ stores }}"
-    - name: Auto-Mount USB Drive Partition "{{ store.device }}" 1
-      ansible.posix.mount:
+    - name: "Auto-Mount USB Drive Partition {{ store.device }} 1"
+      mount:
         path: "{{ store.mount }}"
         src: "{{ store.device }}1"
         fstype: "{{ store.fs }}"
@@ -191,7 +191,7 @@
       loop: "{{ stores }}"
     - name: Periodically zero freed storage
       ansible.builtin.cron:
-        name: Zero Freed Storage on "{{ store.mount }}"
+        name: "Zero Freed Storage on {{ store.mount }}"
         job: "sfill -lf {{ store.mount }}"
         special_time: monthly
         state: present
