@@ -1,240 +1,230 @@
 ---
 - name: Common Configuration
-  hosts: *
+  hosts: "*"
   tasks:
-  - name: Set Timezone
-    community.general.timezone:
-      name: America/New_York
-  - name: Prohibit Password Authentication to SSH
-    ansible.builtin.lineinfile:
-      path: /etc/ssh/sshd_config
-      regexp: '^PasswordAuthentication'
-      line: PasswordAuthentication no
-  - name: Enable SSH Daemon
-    ansible.builtin.systemd:
-      name: ssh
-      enabled: yes
-      state: reloaded
-  - name: Install secure-delete APT Package
-    apt:
-      name: secure-delete
-      update_cache: yes
-      state: latest
-  - name: Install hexyl APT Package
-    apt:
-      name: hexyl
-      update_cache: yes
-      state: latest
-  - name: Install avahi-daemon APT Package
-    apt:
-      name: avahi-daemon
-      update_cache: yes
-      state: latest
-  - name: Get the NordVPN Repository Debian File
-    ansible.builtin.get_url:
-      url: https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb
-      dest: /tmp/nordvpn.deb
-  - name: Install NordVPN Repository from the Debian File
-    ansible.builtin.apt:
-      deb: /tmp/nordvpn.deb
-  - name: Install NordVPN
-    apt:
-      name: nordvpn
-      update_cache: yes
-      state: present
-  - name: Make sure dnsmasq is not installed
-    apt:
-      name: dnsmasq
-      state: absent
-  - name: Install DNSCrypt Proxy
-    apt:
-      name: dnscrypt-proxy
-      update_cache: yes
-      state: present
-  # Source: https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist
-  - name: Download the Hosts Blacklist
-    ansible.builtin.get_url:
-      url: https://hosts.ubuntu101.co.za/domains.list
-      dest: /etc/dnscrypt-proxy/dns.blacklist
-  - name: Configure DNSCrypt Proxy DNS Blacklist
-    ansible.builtin.lineinfile:
-      dest: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
-      regexp: "^blacklist_file ="
-      line: "blacklist_file = '/etc/dnscrypt-proxy/dns.blacklist'"
-      state: present
-  - name: Block metrics.ubuntu.com
-    ansible.builtin.lineinfile:
-      dest: /etc/dnscrypt-proxy/dns.blacklist
-      line: "metrics.ubuntu.com"
-      state: present
-  - name: Block popcon.ubuntu.com
-    ansible.builtin.lineinfile:
-      dest: /etc/dnscrypt-proxy/dns.blacklist
-      line: "popcon.ubuntu.com"
-      state: present
-  - name: Configure DNSCrypt Proxy Cache
-    ansible.builtin.lineinfile:
-      dest: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
-      regexp: "^cache ="
-      line: "cache = true"
-      state: present
-  - name: Configure DNSCrypt Proxy DNS Servers
-    ansible.builtin.lineinfile:
-      dest: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
-      regexp: "^server_names ="
-      line: "server_names = ['sth-dnscrypt-se', 'ams-dnscrypt-nl']"
-      state: present
-  # Source: https://pimylifeup.com/raspberry-pi-dns-settings/
-  - name: Configure DNS Proxy to be the DNS Resolver
-    ansible.builtin.lineinfile:
-      dest: /etc/dhcpcd.conf
-      regexp: "^static domain_name_servers="
-      line: "static domain_name_servers=127.0.0.1"
-      state: present
-  - name: Enable and Restart DHCP Client Daemon
-    ansible.builtin.systemd:
-      name: dhcpcd
-      enabled: yes
-      state: restarted
-  - name: Enable and Restart Network-Manager Daemon
-    ansible.builtin.systemd:
-      name: network-manager
-      enabled: yes
-      state: restarted
-  - name: Enable and Restart DNSCrypt Proxy Daemon
-    ansible.builtin.systemd:
-      name: dnscrypt-proxy
-      enabled: yes
-      state: restarted
-  # After all this, "127.0.0.1" should be in /etc/resolv.conf.
-  # Source: https://askubuntu.com/questions/1027532/how-to-opt-out-of-system-information-reports
-  - name: Purge ubuntu-report
-    apt:
-      name: ubuntu-report
-      purge: yes
-      state: absent
-  - name: Purge popularity-contest
-    apt:
-      name: popularity-contest
-      purge: yes
-      state: absent
-  - name: Purge apport
-    apt:
-      name: apport
-      purge: yes
-      state: absent
-  - name: Purge whoopsie
-    apt:
-      name: whoopsie
-      purge: yes
-      state: absent
-  - name: Ensure ASLR
-    ansible.posix.sysctl:
-      name: kernel.randomize_va_space
-      value: "1"
-  - name: Ensure ExecShield
-    ansible.posix.sysctl:
-      name: kernel.exec-shield
-      value: "1"
-  - name: Disable IP Forwarding
-    ansible.posix.sysctl:
-      name: net.ipv4.ip_forward
-      value: "0"
-  - name: Periodically delete command history
-    ansible.builtin.cron:
-      name: Delete command history
-      job: "rm /home/pi/.bash_history"
-      special_time: weekly
-      state: present
-  - name: Enable Ethernet Jumbo Frames
-    ansible.builtin.lineinfile:
-      dest: /etc/dhcp/dhcpd.conf
-      regexp: "^option interface-mtu"
-      line: "option interface-mtu 9000;"
-      state: present
+    - name: Set Timezone
+      community.general.timezone:
+        name: America/New_York
+    - name: Prohibit Password Authentication to SSH
+      ansible.builtin.lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PasswordAuthentication'
+        line: PasswordAuthentication no
+    - name: Enable SSH Daemon
+      ansible.builtin.systemd:
+        name: ssh
+        enabled: yes
+        state: reloaded
+    - name: Install secure-delete APT Package
+      apt:
+        name: secure-delete
+        update_cache: yes
+        state: latest
+    - name: Install hexyl APT Package
+      apt:
+        name: hexyl
+        update_cache: yes
+        state: latest
+    - name: Install avahi-daemon APT Package
+      apt:
+        name: avahi-daemon
+        update_cache: yes
+        state: latest
+    - name: Get the NordVPN Repository Debian File
+      ansible.builtin.get_url:
+        url: https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb
+        dest: /tmp/nordvpn.deb
+    - name: Install NordVPN Repository from the Debian File
+      ansible.builtin.apt:
+        deb: /tmp/nordvpn.deb
+    - name: Install NordVPN
+      apt:
+        name: nordvpn
+        update_cache: yes
+        state: present
+    - name: Make sure dnsmasq is not installed
+      apt:
+        name: dnsmasq
+        state: absent
+    - name: Install DNSCrypt Proxy
+      apt:
+        name: dnscrypt-proxy
+        update_cache: yes
+        state: present
+    # Source: https://github.com/Ultimate-Hosts-Blacklist/Ultimate.Hosts.Blacklist
+    - name: Download the Hosts Blacklist
+      ansible.builtin.get_url:
+        url: https://hosts.ubuntu101.co.za/domains.list
+        dest: /etc/dnscrypt-proxy/dns.blacklist
+    - name: Configure DNSCrypt Proxy DNS Blacklist
+      ansible.builtin.lineinfile:
+        dest: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
+        regexp: "^blacklist_file ="
+        line: "blacklist_file = '/etc/dnscrypt-proxy/dns.blacklist'"
+        state: present
+    - name: Block metrics.ubuntu.com
+      ansible.builtin.lineinfile:
+        dest: /etc/dnscrypt-proxy/dns.blacklist
+        line: "metrics.ubuntu.com"
+        state: present
+    - name: Block popcon.ubuntu.com
+      ansible.builtin.lineinfile:
+        dest: /etc/dnscrypt-proxy/dns.blacklist
+        line: "popcon.ubuntu.com"
+        state: present
+    - name: Configure DNSCrypt Proxy Cache
+      ansible.builtin.lineinfile:
+        dest: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
+        regexp: "^cache ="
+        line: "cache = true"
+        state: present
+    - name: Configure DNSCrypt Proxy DNS Servers
+      ansible.builtin.lineinfile:
+        dest: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
+        regexp: "^server_names ="
+        line: "server_names = ['sth-dnscrypt-se', 'ams-dnscrypt-nl']"
+        state: present
+    # Source: https://pimylifeup.com/raspberry-pi-dns-settings/
+    - name: Configure DNS Proxy to be the DNS Resolver
+      ansible.builtin.lineinfile:
+        dest: /etc/dhcpcd.conf
+        regexp: "^static domain_name_servers="
+        line: "static domain_name_servers=127.0.0.1"
+        state: present
+    - name: Enable and Restart DHCP Client Daemon
+      ansible.builtin.systemd:
+        name: dhcpcd
+        enabled: yes
+        state: restarted
+    - name: Enable and Restart Network-Manager Daemon
+      ansible.builtin.systemd:
+        name: network-manager
+        enabled: yes
+        state: restarted
+    - name: Enable and Restart DNSCrypt Proxy Daemon
+      ansible.builtin.systemd:
+        name: dnscrypt-proxy
+        enabled: yes
+        state: restarted
+    # After all this, "127.0.0.1" should be in /etc/resolv.conf.
+    # Source: https://askubuntu.com/questions/1027532/how-to-opt-out-of-system-information-reports
+    - name: Purge ubuntu-report
+      apt:
+        name: ubuntu-report
+        purge: yes
+        state: absent
+    - name: Purge popularity-contest
+      apt:
+        name: popularity-contest
+        purge: yes
+        state: absent
+    - name: Purge apport
+      apt:
+        name: apport
+        purge: yes
+        state: absent
+    - name: Purge whoopsie
+      apt:
+        name: whoopsie
+        purge: yes
+        state: absent
+    - name: Ensure ASLR
+      ansible.posix.sysctl:
+        name: kernel.randomize_va_space
+        value: "1"
+    - name: Ensure ExecShield
+      ansible.posix.sysctl:
+        name: kernel.exec-shield
+        value: "1"
+    - name: Disable IP Forwarding
+      ansible.posix.sysctl:
+        name: net.ipv4.ip_forward
+        value: "0"
+    - name: Periodically delete command history
+      ansible.builtin.cron:
+        name: Delete command history
+        job: "rm /home/pi/.bash_history"
+        special_time: weekly
+        state: present
+    - name: Enable Ethernet Jumbo Frames
+      ansible.builtin.lineinfile:
+        dest: /etc/dhcp/dhcpd.conf
+        regexp: "^option interface-mtu"
+        line: "option interface-mtu 9000;"
+        state: present
 
 
----
 - name: Storage Server Configuration
   hosts: k8s-storage1
   vars:
     stores:
-    - device: /dev/sda
-      fs: xfs
-      mount: /mnt/store01
-    - device: /dev/sdb
-      fs: xfs
-      mount: /mnt/store02
+      - device: /dev/sda
+        fs: xfs
+        mount: /mnt/store01
+      - device: /dev/sdb
+        fs: xfs
+        mount: /mnt/store02
   tasks:
-  - name: Install mdadm APT Package
-    apt:
-      name: mdadm
-      update_cache: yes
-      state: latest
-  - name: Create USB Drive Partition "{{ store.device }}"1
-    community.general.parted:
-      device: "{{ store.device }}"
-      number: 1
-      state: present
-      fs_type: "{{ store.fs }}"
-    loop: "{{ stores }}"
-  - name: Format USB Drive Partition "{{ store.device }}"1 as XFS
-    community.general.filesystem:
-      fstype: "{{ store.fs }}"
-      dev: "{{ store.device }}1"
-    loop: "{{ stores }}"
-  - name: Auto-Mount USB Drive Partition "{{ store.device }}" 1
-    ansible.posix.mount:
-      path: "{{ store.mount }}"
-      src: "{{ store.device }}1"
-      fstype: "{{ store.fs }}"
-      state: present
-    loop: "{{ stores }}"
-  - name: Periodically zero freed storage
-    ansible.builtin.cron:
-      name: Zero Freed Storage on "{{ store.mount }}"
-      job: "sfill -lf {{ store.mount }}"
-      special_time: monthly
-      state: present
+    - name: Install mdadm APT Package
+      apt:
+        name: mdadm
+        update_cache: yes
+        state: latest
+    - name: Create USB Drive Partition "{{ store.device }}"1
+      community.general.parted:
+        device: "{{ store.device }}"
+        number: 1
+        state: present
+        fs_type: "{{ store.fs }}"
+      loop: "{{ stores }}"
+    - name: Format USB Drive Partition "{{ store.device }}"1 as XFS
+      community.general.filesystem:
+        fstype: "{{ store.fs }}"
+        dev: "{{ store.device }}1"
+      loop: "{{ stores }}"
+    - name: Auto-Mount USB Drive Partition "{{ store.device }}" 1
+      ansible.posix.mount:
+        path: "{{ store.mount }}"
+        src: "{{ store.device }}1"
+        fstype: "{{ store.fs }}"
+        state: present
+      loop: "{{ stores }}"
+    - name: Periodically zero freed storage
+      ansible.builtin.cron:
+        name: Zero Freed Storage on "{{ store.mount }}"
+        job: "sfill -lf {{ store.mount }}"
+        special_time: monthly
+        state: present
 
 
----
 - name: Kubernetes Common Configuration
   hosts: k8s-*
   tasks:
-  - name: Install microk8s snap
-    community.general.snap:
-      name: microk8s
-      classic: yes
-      state: present
-  - name: Wait until microK8s is running
-    ansible.builtin.command:
-      cmd: microk8s status --wait-ready
-  - name: Enable DNS
-    ansible.builtin.command:
-      cmd: microk8s enable dns
-  - name: Enable Dashboard
-    ansible.builtin.command:
-      cmd: microk8s enable dashboard
-  - name: Enable Registry
-    ansible.builtin.command:
-      cmd: microk8s enable registry
-  - name: Enable Helm 3
-    ansible.builtin.command:
-      cmd: microk8s enable helm3
-  - name: Get all namespaces
-    ansible.builtin.command:
-      cmd: microk8s kubectl get all --all-namespaces
-  - name: Set File Descriptor Limits for Microk8s
-    ansible.builtin.lineinfile:
-      dest: /var/snap/microk8s/current/args/containerd-env
-      line: "ulimit -n 65536"
-      state: present
-# ---
-# - name: Kubernetes Master Configuration
-#   hosts: k8s-master1
-#   tasks:
-# ---
-# - name: Kubernetes Worker Configuration
-#   hosts: k8s-worker*
-#   tasks:
+    - name: Install microk8s snap
+      community.general.snap:
+        name: microk8s
+        classic: yes
+        state: present
+    - name: Wait until microK8s is running
+      ansible.builtin.command:
+        cmd: microk8s status --wait-ready
+    - name: Enable DNS
+      ansible.builtin.command:
+        cmd: microk8s enable dns
+    - name: Enable Dashboard
+      ansible.builtin.command:
+        cmd: microk8s enable dashboard
+    - name: Enable Registry
+      ansible.builtin.command:
+        cmd: microk8s enable registry
+    - name: Enable Helm 3
+      ansible.builtin.command:
+        cmd: microk8s enable helm3
+    - name: Get all namespaces
+      ansible.builtin.command:
+        cmd: microk8s kubectl get all --all-namespaces
+    - name: Set File Descriptor Limits for Microk8s
+      ansible.builtin.lineinfile:
+        dest: /var/snap/microk8s/current/args/containerd-env
+        line: "ulimit -n 65536"
+        state: present
