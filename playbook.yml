@@ -3,7 +3,7 @@
   hosts: "*"
   tasks:
     - name: Set Timezone
-      community.general.timezone:
+      timezone:
         name: America/New_York
     - name: Prohibit Password Authentication to SSH
       ansible.builtin.lineinfile:
@@ -171,14 +171,14 @@
         update_cache: yes
         state: latest
     - name: "Create USB Drive Partition {{ store.device }}1"
-      community.general.parted:
+      parted:
         device: "{{ store.device }}"
         number: 1
         state: present
         fs_type: "{{ store.fs }}"
       loop: "{{ stores }}"
     - name: "Format USB Drive Partition {{ store.device }}1 as XFS"
-      community.general.filesystem:
+      filesystem:
         fstype: "{{ store.fs }}"
         dev: "{{ store.device }}1"
       loop: "{{ stores }}"
@@ -201,7 +201,7 @@
   hosts: k8s-*
   tasks:
     - name: Install microk8s snap
-      community.general.snap:
+      snap:
         name: microk8s
         classic: yes
         state: present
