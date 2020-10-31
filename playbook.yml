@@ -37,6 +37,7 @@
       ansible.builtin.get_url:
         url: https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb
         dest: /tmp/nordvpn.deb
+      ignore_errors: yes # This fails sometimes, but unless it fails the first time, it is not a problem.
     - name: Install NordVPN Repository from the Debian File
       ansible.builtin.apt:
         deb: /tmp/nordvpn.deb
@@ -79,6 +80,12 @@
         dest: /etc/dhcpcd.conf
         regexp: '^\s*static domain_name_servers='
         line: "static domain_name_servers={{ dnscrypt_listen_address }}"
+        state: present
+    - name: Enable Ethernet Jumbo Frames
+      ansible.builtin.lineinfile:
+        dest: /etc/dhcpcd.conf
+        regexp: '^\s*option interface-mtu'
+        line: "option interface-mtu 9000;"
         state: present
     - name: Enable and Restart DHCP Client Daemon
       ansible.builtin.systemd:
@@ -134,12 +141,6 @@
         name: Delete command history
         job: "rm /home/pi/.bash_history"
         special_time: weekly
-        state: present
-    - name: Enable Ethernet Jumbo Frames
-      ansible.builtin.lineinfile:
-        dest: /etc/dhcp/dhcpd.conf
-        regexp: '^\s*option interface-mtu'
-        line: "option interface-mtu 9000;"
         state: present
 
 
