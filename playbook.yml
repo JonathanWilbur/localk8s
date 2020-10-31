@@ -1,6 +1,9 @@
 ---
 - name: Common Configuration
   hosts: "*"
+  vars:
+    dnscrypt_listen_address: "127.0.2.1"
+    dnscrypt_listen_port: 53
   tasks:
     - name: Set Timezone
       timezone:
@@ -8,7 +11,7 @@
     - name: Prohibit Password Authentication to SSH
       ansible.builtin.lineinfile:
         path: /etc/ssh/sshd_config
-        regexp: '^PasswordAuthentication'
+        regexp: '^\s*PasswordAuthentication'
         line: PasswordAuthentication no
     - name: Enable SSH Daemon
       ansible.builtin.systemd:
@@ -59,7 +62,7 @@
     - name: Configure DNSCrypt Proxy DNS Blacklist
       ansible.builtin.lineinfile:
         dest: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
-        regexp: "^blacklist_file ="
+        regexp: '^\s*blacklist_file ='
         line: "blacklist_file = '/etc/dnscrypt-proxy/dns.blacklist'"
         state: present
     - name: Block metrics.ubuntu.com
@@ -72,33 +75,39 @@
         dest: /etc/dnscrypt-proxy/dns.blacklist
         line: "popcon.ubuntu.com"
         state: present
+    - name: "Configure DNSCrypt to Listen on {{ dnscrypt_listen_address }}"
+      ansible.builtin.lineinfile:
+        dest: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
+        regexp: '^\s*listen_addresses ='
+        line: "listen_addresses = ['{{ dnscrypt_listen_address }}:{{ dnscrypt_listen_port }}']"
+        state: present
     - name: Configure DNSCrypt Proxy Cache
       ansible.builtin.lineinfile:
         dest: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
-        regexp: "^cache ="
+        regexp: '^\s*cache ='
         line: "cache = true"
         state: present
     - name: Configure DNSCrypt Proxy DNS Servers
       ansible.builtin.lineinfile:
         dest: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
-        regexp: "^server_names ="
+        regexp: '^\s*server_names ='
         line: "server_names = ['sth-dnscrypt-se', 'ams-dnscrypt-nl']"
         state: present
     # Source: https://pimylifeup.com/raspberry-pi-dns-settings/
     - name: Configure DNS Proxy to be the DNS Resolver
       ansible.builtin.lineinfile:
         dest: /etc/dhcpcd.conf
-        regexp: "^static domain_name_servers="
-        line: "static domain_name_servers=127.0.0.1"
+        regexp: '^\s*static domain_name_servers='
+        line: "static domain_name_servers={{ dnscrypt_listen_address }}"
         state: present
     - name: Enable and Restart DHCP Client Daemon
       ansible.builtin.systemd:
         name: dhcpcd
         enabled: yes
         state: restarted
-    - name: Enable and Restart Network-Manager Daemon
+    - name: Enable and Restart Networking
       ansible.builtin.systemd:
-        name: network-manager
+        name: networking
         enabled: yes
         state: restarted
     - name: Enable and Restart DNSCrypt Proxy Daemon
@@ -106,7 +115,6 @@
         name: dnscrypt-proxy
         enabled: yes
         state: restarted
-    # After all this, "127.0.0.1" should be in /etc/resolv.conf.
     # Source: https://askubuntu.com/questions/1027532/how-to-opt-out-of-system-information-reports
     - name: Purge ubuntu-report
       apt:
@@ -149,7 +157,7 @@
     - name: Enable Ethernet Jumbo Frames
       ansible.builtin.lineinfile:
         dest: /etc/dhcp/dhcpd.conf
-        regexp: "^option interface-mtu"
+        regexp: '^\s*option interface-mtu'
         line: "option interface-mtu 9000;"
         state: present
 
