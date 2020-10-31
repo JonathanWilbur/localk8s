@@ -59,12 +59,6 @@
       ansible.builtin.get_url:
         url: https://hosts.ubuntu101.co.za/domains.list
         dest: /etc/dnscrypt-proxy/dns.blacklist
-    - name: Configure DNSCrypt Proxy DNS Blacklist
-      ansible.builtin.lineinfile:
-        dest: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
-        regexp: '^\s*blacklist_file ='
-        line: "blacklist_file = '/etc/dnscrypt-proxy/dns.blacklist'"
-        state: present
     - name: Block metrics.ubuntu.com
       ansible.builtin.lineinfile:
         dest: /etc/dnscrypt-proxy/dns.blacklist
@@ -75,26 +69,12 @@
         dest: /etc/dnscrypt-proxy/dns.blacklist
         line: "popcon.ubuntu.com"
         state: present
-    - name: "Configure DNSCrypt to Listen on {{ dnscrypt_listen_address }}"
-      ansible.builtin.lineinfile:
+    - name: Configure DNSCrypt Proxy
+      ansible.builtin.copy:
+        src: /home/pi/localk8s/configuration/dnscrypt-proxy.toml
         dest: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
-        regexp: '^\s*listen_addresses ='
-        line: "listen_addresses = ['{{ dnscrypt_listen_address }}:{{ dnscrypt_listen_port }}']"
-        state: present
-    - name: Configure DNSCrypt Proxy Cache
-      ansible.builtin.lineinfile:
-        dest: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
-        regexp: '^\s*cache ='
-        line: "cache = true"
-        state: present
-    - name: Configure DNSCrypt Proxy DNS Servers
-      ansible.builtin.lineinfile:
-        dest: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
-        regexp: '^\s*server_names ='
-        line: "server_names = ['sth-dnscrypt-se', 'ams-dnscrypt-nl']"
-        state: present
     # Source: https://pimylifeup.com/raspberry-pi-dns-settings/
-    - name: Configure DNS Proxy to be the DNS Resolver
+    - name: Configure DNSCrypt Proxy to be the DNS Resolver
       ansible.builtin.lineinfile:
         dest: /etc/dhcpcd.conf
         regexp: '^\s*static domain_name_servers='
@@ -140,10 +120,11 @@
       sysctl:
         name: kernel.randomize_va_space
         value: "1"
-    - name: Ensure ExecShield
-      sysctl:
-        name: kernel.exec-shield
-        value: "1"
+    # Not valid on all systems.
+    # - name: Ensure ExecShield
+    #   sysctl:
+    #     name: kernel.exec-shield
+    #     value: "1"
     - name: Disable IP Forwarding
       sysctl:
         name: net.ipv4.ip_forward
