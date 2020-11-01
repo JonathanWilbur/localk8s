@@ -20,8 +20,8 @@
     - name: Install SSH Public Keys
       authorized_key:
         user: ubuntu
-        key: "{{ key.key }}"
-        comment : "{{ key.comment }}"
+        key: "{{ item.key }}"
+        comment : "{{ item.comment }}"
         path: /home/ubuntu/.ssh/authorized_keys
         state: present
       loop: "{{ ssh_public_keys }}"
@@ -178,29 +178,30 @@
         state: latest
     - name: "Create USB Drive Partition {{ store.device }}1"
       parted:
-        device: "{{ store.device }}"
+        device: "{{ item.device }}"
         number: 1
         state: present
-        fs_type: "{{ store.fs }}"
+        fs_type: "{{ item.fs }}"
       loop: "{{ stores }}"
     - name: "Format USB Drive Partition {{ store.device }}1 as XFS"
       filesystem:
-        fstype: "{{ store.fs }}"
-        dev: "{{ store.device }}1"
+        fstype: "{{ item.fs }}"
+        dev: "{{ item.device }}1"
       loop: "{{ stores }}"
     - name: "Auto-Mount USB Drive Partition {{ store.device }} 1"
       mount:
-        path: "{{ store.mount }}"
-        src: "{{ store.device }}1"
-        fstype: "{{ store.fs }}"
+        path: "{{ item.mount }}"
+        src: "{{ item.device }}1"
+        fstype: "{{ item.fs }}"
         state: present
       loop: "{{ stores }}"
     - name: Periodically zero freed storage
       ansible.builtin.cron:
-        name: "Zero Freed Storage on {{ store.mount }}"
-        job: "sfill -lf {{ store.mount }}"
+        name: "Zero Freed Storage on {{ item.mount }}"
+        job: "sfill -lf {{ item.mount }}"
         special_time: monthly
         state: present
+      loop: "{{ stores }}"
 
 
 - name: Kubernetes Common Configuration
