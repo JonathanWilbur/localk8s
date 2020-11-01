@@ -97,6 +97,7 @@
     #     regexp: '^(\s*)option interface-mtu'
     #     line: '\1option interface-mtu 9000;'
     #     state: present
+    #     backrefs: yes
     - name: Enable and Restart DNSCrypt Proxy Daemon
       ansible.builtin.systemd:
         name: dnscrypt-proxy
@@ -153,6 +154,7 @@
         regexp: '^(\s*)TMOUT='
         line: '\1TMOUT=1200'
         state: present
+        backrefs: yes
 
 - name: Storage Server Configuration
   hosts: k8s-storage1
