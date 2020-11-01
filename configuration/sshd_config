@@ -19,3 +19,6 @@ TCPKeepAlive yes
 UseDNS no
 UsePrivilegeSeparation yes
 X11Forwarding no
+
+# Subsystems
+Subsystem sftp /usr/lib/openssh/sftp-server
