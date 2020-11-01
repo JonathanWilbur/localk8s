@@ -1,0 +1,13 @@
+[localk8s]
+k8s-master1.home
+k8s-storage1.home
+k8s-worker[1:2].home
+
+[masters]
+k8s-master1.home
+
+[stores]
+k8s-storage1.home
+
+[workers]
+k8s-worker[1:2].home
