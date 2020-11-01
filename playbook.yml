@@ -15,7 +15,7 @@
         name: America/New_York
     - name: Configure OpenSSH
       ansible.builtin.copy:
-        content: "{{lookup('file', 'configuration/sshd_config')}}"
+        content: "{{ lookup('file', 'configuration/sshd_config') }}"
         dest: /etc/ssh/sshd_config
     - name: Install SSH Public Keys
       authorized_key:
@@ -84,33 +84,27 @@
         state: present
     - name: Configure DNSCrypt Proxy
       ansible.builtin.copy:
-        content: "{{lookup('file', 'configuration/dnscrypt-proxy.toml')}}"
+        content: "{{ lookup('file', 'configuration/dnscrypt-proxy.toml') }}"
         dest: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
-    - name: Configure DNSCrypt Proxy to be the DNS Resolver
-      ansible.builtin.lineinfile:
-        dest: /etc/dhcpcd.conf
-        regexp: '^(\s*)static domain_name_servers='
-        line: '\1static domain_name_servers={{ dnscrypt_listen_address }}'
-        state: present
-    - name: Enable Ethernet Jumbo Frames
-      ansible.builtin.lineinfile:
-        dest: /etc/dhcpcd.conf
-        regexp: '^(\s*)option interface-mtu'
-        line: '\1option interface-mtu 9000;'
-        state: present
-    - name: Enable and Restart DHCP Client Daemon
-      ansible.builtin.systemd:
-        name: dhcpcd
-        enabled: yes
-        state: restarted
-    - name: Enable and Restart Networking
-      ansible.builtin.systemd:
-        name: networking
-        enabled: yes
-        state: restarted
+    - name: Configure Systemd to use DNSCrypt Proxy
+      ansible.builtin.copy:
+        content: "{{ lookup('file', 'configuration/resolved.conf') }}"
+        dest: /etc/systemd/resolved.conf
+    # I cannot seem to configure my router to support this anyway.
+    # - name: Enable Ethernet Jumbo Frames
+    #   ansible.builtin.lineinfile:
+    #     dest: /etc/dhcpcd.conf
+    #     regexp: '^(\s*)option interface-mtu'
+    #     line: '\1option interface-mtu 9000;'
+    #     state: present
     - name: Enable and Restart DNSCrypt Proxy Daemon
       ansible.builtin.systemd:
         name: dnscrypt-proxy
+        enabled: yes
+        state: restarted
+    - name: Enable and Restart SystemD-Resolved
+      ansible.builtin.systemd:
+        name: systemd-resolved
         enabled: yes
         state: restarted
     # Source: https://askubuntu.com/questions/1027532/how-to-opt-out-of-system-information-reports
