@@ -4,20 +4,32 @@
   vars:
     dnscrypt_listen_address: "127.0.2.1"
     dnscrypt_listen_port: 53
+    ssh_public_keys:
+      - comment: "Home Desktop Public Key"
+        key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDPUOa0+zQzDOCCHDOB++XHIFpOmkoIknABMeInPV83MMJwnu+aSaB6fIlmSmdva6ivCKflM45DfdB6JhHNDMJc/E5HP7qpE9M3g9PD3XbuafBDbpCHysfJC9p1QMxMBzlX8RiUC+g6u1S8WLV4vdjEYTwDldr34C/fuk+43FOSXvG0DoxiGik5KAEwdoZsy+IcTxhL0bZF7YlePh8Mhx8ABMylvgfpas2PRtwbs0LCWH+7sqMLH+H+kZnnSUxP7MsDrhMXiPPgW5SFZe1lPrrV+t0o9bk3KKArS7IN46fcUoV6Gkf7MdZCkAiXCfOWe4ONjH/A1b2pT0DAgGnp/GLN"
+      - comment: "Laptop Public Key"
+        key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC9+LhmchErX29/bRWessCTwDW2hPdwW31y4d8MDJudQZd0xJqY+womSj3uSVzIEnFTY+a4HKWKnH1bAO1wtIDurELG5qPorsVbPG/1Imw+3KJVkVYml5q1K9MCmFtrzNO18r8I5KN6/BgZcjMmherFtYF681R7d7MLw4o1Zt5+5OXVE5CIeJjtoC+x7/PN1baGnFEudh8rns/JQaWz4zvU87hf3QNWRvhaA87XlQ01fkRyar5wIHv6lPz5FpiyTpkVAPiT0zaGTWw3Iu2cxsT0sqBIXDOPDNcjegiUjLMvTUuGkIShR6/rdlOBNsiHVNtUIxggvTUKPypa+0XhGxWflhy3vh/dby1q9HPJUTu0LPBugSOMhLFBiLVzUkFgRoalzeMgVjE8gE5Fvyv+2xpVVu6qGF23IXhxNFeKUrwfcUyI44YLDRWc4Am82lHs8W4ABq6J327tCpzi2WdYW1sdzZzTjh3CInr2R+gMvXxoj54X1UefjuKLehBr2bBIAM+U5ZI/CZf6NS1svF8S8hdUzVYqr4bRMmrhy5o+VL6eJUeSsYDYHlqc7ilIrRUV1qvpSvL7bAyfbKrO1TlHRRy/MYoVJj7DR2HCJVsWraIJI7L0swUiH75qAFN0F3f9hSwQviyk1hlPkA1XElKCjn4As2SV8e3pvGiYUrVyC7hasw== jonathan@wilbur.space"
   tasks:
     - name: Set Timezone
       timezone:
         name: America/New_York
-    - name: Prohibit Password Authentication to SSH
-      ansible.builtin.lineinfile:
-        path: /etc/ssh/sshd_config
-        regexp: '^\s*PasswordAuthentication'
-        line: PasswordAuthentication no
+    - name: Configure OpenSSH
+      ansible.builtin.copy:
+        content: "{{lookup('file', 'configuration/sshd_config')}}"
+        dest: /etc/ssh/sshd_config
+    - name: Install SSH Public Keys
+      authorized_key:
+        user: ubuntu
+        key: "{{ key.key }}"
+        comment : "{{ key.comment }}"
+        path: /home/ubuntu/.ssh/authorized_keys
+        state: present
+      loop: "{{ ssh_public_keys }}"
     - name: Enable SSH Daemon
       ansible.builtin.systemd:
         name: ssh
         enabled: yes
-        state: reloaded
+        state: restarted
     - name: Install secure-delete APT Package
       apt:
         name: secure-delete
@@ -72,20 +84,19 @@
         state: present
     - name: Configure DNSCrypt Proxy
       ansible.builtin.copy:
-        src: /home/pi/localk8s/configuration/dnscrypt-proxy.toml
+        content: "{{lookup('file', 'configuration/dnscrypt-proxy.toml')}}"
         dest: /etc/dnscrypt-proxy/dnscrypt-proxy.toml
-    # Source: https://pimylifeup.com/raspberry-pi-dns-settings/
     - name: Configure DNSCrypt Proxy to be the DNS Resolver
       ansible.builtin.lineinfile:
         dest: /etc/dhcpcd.conf
-        regexp: '^\s*static domain_name_servers='
-        line: "static domain_name_servers={{ dnscrypt_listen_address }}"
+        regexp: '^(\s*)static domain_name_servers='
+        line: "\1static domain_name_servers={{ dnscrypt_listen_address }}"
         state: present
     - name: Enable Ethernet Jumbo Frames
       ansible.builtin.lineinfile:
         dest: /etc/dhcpcd.conf
-        regexp: '^\s*option interface-mtu'
-        line: "option interface-mtu 9000;"
+        regexp: '^(\s*)option interface-mtu'
+        line: "\1option interface-mtu 9000;"
         state: present
     - name: Enable and Restart DHCP Client Daemon
       ansible.builtin.systemd:
@@ -139,10 +150,15 @@
     - name: Periodically delete command history
       ansible.builtin.cron:
         name: Delete command history
-        job: "rm /home/pi/.bash_history"
+        job: "rm /home/ubuntu/.bash_history"
         special_time: weekly
         state: present
-
+    - name: Automatically logout users
+      ansible.builtin.lineinfile:
+        dest: /etc/profile
+        regexp: '^(\s*)TMOUT='
+        line: "\1TMOUT=1200"
+        state: present
 
 - name: Storage Server Configuration
   hosts: k8s-storage1

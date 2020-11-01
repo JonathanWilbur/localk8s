@@ -1,0 +1,21 @@
+AddressFamily inet
+
+# These two settings together will make OpenSSH log users out after 15 minutes.
+ClientAliveInterval 900
+ClientAliveCountMax 0
+
+MaxAuthTries 3
+MaxSessions 3
+MaxStartups 5
+PasswordAuthentication no
+PermitEmptyPasswords no
+PermitRootLogin no
+PrintLastLog yes
+PrintMotd yes
+Protocol 2
+PubkeyAuthentication yes
+StrictModes yes
+TCPKeepAlive yes
+UseDNS no
+UsePrivilegeSeparation yes
+X11Forwarding no

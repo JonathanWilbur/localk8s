@@ -33,11 +33,22 @@
 - [x] Install mdadm
 - [x] Configure Ethernet Jumbo Frames
 - [x] ~~Large Pages~~ (Not necessary, because Kubernetes can configure this on a container-basis.)
+- [x] Set auto-logout
 
 See: https://github.com/trimstray/linux-hardening-checklist
 https://viktorvan.github.io/kubernetes/kubernetes-on-raspberry-pi/
+
 https://www.chrisjhart.com/Windows-10-ssh-copy-id/:
 type $env:USERPROFILE\.ssh\id_rsa.pub | ssh {IP-ADDRESS-OR-FQDN} "cat >> .ssh/authorized_keys"
+
+Steps to reproduce:
+
+1. Install Ubuntu Server for Raspberry Pi (64-bit).
+2. SSH in and change password.
+3. Update all packages.
+4. Install Ansible.
+5. Git clone this repository.
+6. Run `ansible-playbook`, targeting the hosts.
 
 Run locally with:
 sudo ansible-playbook --connection=local --inventory=127.0.0.1, --limit=127.0.0.1 ./playbook.yml
