@@ -45,10 +45,11 @@ Steps to reproduce:
 
 1. Install Ubuntu Server for Raspberry Pi (64-bit).
 2. SSH in and change password.
-3. Update all packages.
-4. Install Ansible.
-5. Git clone this repository.
-6. Run `ansible-playbook`, targeting the hosts.
+3. Change hostname by running `sudo hostnamectl set-hostname <hostname>`.
+4. Update all packages.
+5. Install Ansible.
+6. Git clone this repository.
+7. Run `ansible-playbook`, targeting the hosts.
 
 Run locally with:
 sudo ansible-playbook --connection=local --inventory=127.0.0.1, --limit=127.0.0.1 ./playbook.yml
