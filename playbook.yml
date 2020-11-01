@@ -157,7 +157,7 @@
         backrefs: yes
 
 - name: Storage Server Configuration
-  hosts: k8s-storage1
+  hosts: stores
   vars:
     stores:
       - device: /dev/sda
@@ -201,7 +201,7 @@
 
 
 - name: Kubernetes Common Configuration
-  hosts: k8s-*
+  hosts: localk8s
   tasks:
     - name: Enable cgroups
       ansible.builtin.lineinfile:
