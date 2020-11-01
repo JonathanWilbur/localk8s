@@ -179,10 +179,12 @@
         state: present
         # fs_type: "{{ item.fs }}"
       loop: "{{ stores }}"
+    # BE VERY CAREFUL WHEN CHANGING THIS STATE.
     - name: "Format USB Drive Partition {{ item.device }}1 as XFS"
       filesystem:
         fstype: "{{ item.fs }}"
         dev: "{{ item.device }}1"
+        force: yes
       loop: "{{ stores }}"
     - name: "Auto-Mount USB Drive Partition {{ item.device }} 1"
       mount:
