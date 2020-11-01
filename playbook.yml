@@ -90,13 +90,13 @@
       ansible.builtin.lineinfile:
         dest: /etc/dhcpcd.conf
         regexp: '^(\s*)static domain_name_servers='
-        line: "\1static domain_name_servers={{ dnscrypt_listen_address }}"
+        line: '\1static domain_name_servers={{ dnscrypt_listen_address }}'
         state: present
     - name: Enable Ethernet Jumbo Frames
       ansible.builtin.lineinfile:
         dest: /etc/dhcpcd.conf
         regexp: '^(\s*)option interface-mtu'
-        line: "\1option interface-mtu 9000;"
+        line: '\1option interface-mtu 9000;'
         state: present
     - name: Enable and Restart DHCP Client Daemon
       ansible.builtin.systemd:
@@ -157,7 +157,7 @@
       ansible.builtin.lineinfile:
         dest: /etc/profile
         regexp: '^(\s*)TMOUT='
-        line: "\1TMOUT=1200"
+        line: '\1TMOUT=1200'
         state: present
 
 - name: Storage Server Configuration
