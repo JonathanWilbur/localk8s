@@ -205,7 +205,20 @@
         special_time: monthly
         state: present
       loop: "{{ stores }}"
-
+    - name: "Install NFS Kernel Server"
+      apt:
+        name: nfs-kernel-server
+        update_cache: yes
+        state: latest
+    - name: Configure NFS
+      ansible.builtin.copy:
+        content: "{{ lookup('file', 'configuration/exports') }}"
+        dest: /etc/exports
+    - name: Enable and Restart NFS Sharing
+      ansible.builtin.systemd:
+        name: nfs-kernel-server
+        enabled: yes
+        state: restarted
 
 - name: Kubernetes Common Configuration
   hosts: localk8s

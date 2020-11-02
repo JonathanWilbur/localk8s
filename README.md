@@ -35,8 +35,8 @@
 - [x] ~~Large Pages~~ (Not necessary, because Kubernetes can configure this on a container-basis.)
 - [x] Set auto-logout
 - [ ] Ensure that blocked domains do not resolve.
-- [ ] Configure NFS Shares
-- [ ] Configure `kubectl` on the laptop.
+- [x] Configure NFS Shares
+- [x] Configure `kubectl` on the laptop.
 - [ ] Test re-running Ansible after adding data to USB drives to ensure it persists.
 - [ ] Deploy [Docker Image Registry](https://docs.docker.com/registry/deploying/)
 - [ ] Deploy [Gitea](https://docs.gitea.io/en-us/install-with-docker/)
@@ -45,6 +45,9 @@
 - [ ] Deploy A Rust Crate Repo? (I can't seem to find one.)
 - [ ] Deploy MongoDB
 - [ ] Deploy RabbitMQ
+- [ ] Deploy MariaDB?
+- [ ] Deploy [WikiJS](https://docs.requarks.io/install/docker)
+- [ ] Deploy [Apache Superset](https://superset.apache.org/docs/installation/installing-superset-using-docker-compose)
 
 See: https://github.com/trimstray/linux-hardening-checklist
 https://viktorvan.github.io/kubernetes/kubernetes-on-raspberry-pi/
