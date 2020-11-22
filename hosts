@@ -1,17 +1,17 @@
 [localk8s]
-k8s-master1.home
-k8s-file1.home
-k8s-database1.home
-k8s-worker[1:2].home
+k8s-master1.local
+k8s-file1.local
+k8s-database1.local
+k8s-worker[1:2].local
 
 [masters]
-k8s-master1.home
+k8s-master1.local
 
 [fileservers]
-k8s-file1.home
+k8s-file1.local
 
 [databases]
-k8s-database1.home
+k8s-database1.local
 
 [workers]
-k8s-worker[1:2].home
+k8s-worker[1:2].local

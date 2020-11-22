@@ -6,8 +6,7 @@ metadata:
 provisioner: kubernetes.io/glusterfs
 allowVolumeExpansion: true
 parameters:
-  resturl: "http://k8s-file1.home:8080"
-  # resturl: "http://192.168.254.40:8080"
+  resturl: "http://k8s-file1.local:8080"
   clusterid: "6a02135daea544004220961189b9efac"
   restuser: "admin"
   secretNamespace: "storage"

@@ -217,7 +217,7 @@
     - name: Configure HEKETI_CLI_SERVER environment variable
       ansible.builtin.lineinfile:
         dest: /home/ubuntu/.profile
-        line: "export HEKETI_CLI_SERVER=http://k8s-file1.home:8080"
+        line: "export HEKETI_CLI_SERVER=http://k8s-file1.local:8080"
         state: present
     - name: Configure HEKETI_CLI_USER environment variable
       ansible.builtin.lineinfile:
