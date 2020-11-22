@@ -40,11 +40,12 @@
         name: hexyl
         update_cache: yes
         state: latest
+    # I think SystemD already has this built-in.
     - name: Install avahi-daemon APT Package
       apt:
         name: avahi-daemon
         update_cache: yes
-        state: latest
+        state: absent
     - name: Get the NordVPN Repository Debian File
       ansible.builtin.get_url:
         url: https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb
@@ -92,6 +93,12 @@
     - name: Enable and Restart SystemD-Resolved
       ansible.builtin.systemd:
         name: systemd-resolved
+        enabled: yes
+        state: restarted
+    # Restarting this is necessary for the per-link configuration to update.
+    - name: Enable and Restart SystemD-Networkd
+      ansible.builtin.systemd:
+        name: systemd-networkd
         enabled: yes
         state: restarted
     # Source: https://askubuntu.com/questions/1027532/how-to-opt-out-of-system-information-reports
