@@ -62,20 +62,15 @@
       apt:
         name: dnsmasq
         state: absent
-    - name: Uninstall DNSCrypt Proxy
-      apt:
-        name: dnscrypt-proxy
-        update_cache: yes
-        state: absent
     - name: Block metrics.ubuntu.com
       ansible.builtin.lineinfile:
-        dest: /etc/dnscrypt-proxy/dns.blacklist
-        line: "metrics.ubuntu.com"
+        dest: /etc/hosts
+        line: "0.0.0.0 metrics.ubuntu.com"
         state: present
     - name: Block popcon.ubuntu.com
       ansible.builtin.lineinfile:
-        dest: /etc/dnscrypt-proxy/dns.blacklist
-        line: "popcon.ubuntu.com"
+        dest: /etc/hosts
+        line: "0.0.0.0 popcon.ubuntu.com"
         state: present
     - name: Configure Systemd Resolved
       ansible.builtin.copy:
@@ -165,15 +160,71 @@
         name: nfs-kernel-server
         update_cache: yes
         state: latest
-    # - name: Configure NFS
-    #   ansible.builtin.copy:
-    #     content: "{{ lookup('file', 'configuration/exports') }}"
-    #     dest: /etc/exports
-    # - name: Enable and Restart NFS Sharing
-    #   ansible.builtin.systemd:
-    #     name: nfs-kernel-server
-    #     enabled: yes
-    #     state: restarted
+    - name: Install GlusterFS Server
+      apt:
+        name: glusterfs-server
+        update_cache: yes
+        state: latest
+    - name: Enable and Start GlusterFS Daemon
+      ansible.builtin.systemd:
+        name: glusterd
+        enabled: yes
+        state: started
+    - name: Download Heketi
+      unarchive:
+        src: https://github.com/heketi/heketi/releases/download/v10.1.0/heketi-client-v10.1.0.linux.arm64.tar.gz
+        dest: /home/ubuntu
+        remote_src: yes
+    - name: Copy file with owner and permissions
+      copy:
+        src: /home/ubuntu/heketi-client/bin/heketi-cli
+        dest: /usr/local/bin/heketi-cli
+        mode: '0644'
+    - name: Create /var/lib/heketi directory
+      file:
+        path: /var/lib/heketi
+        state: directory
+        mode: '0755'
+    - name: Create /var/log/heketi directory
+      file:
+        path: /var/log/heketi
+        state: directory
+        mode: '0755'
+    - name: Create /etc/heketi directory
+      file:
+        path: /etc/heketi
+        state: directory
+        mode: '0755'
+    - name: Configure Heketi
+      ansible.builtin.copy:
+        content: "{{ lookup('file', 'configuration/heketi.json') }}"
+        dest: /etc/heketi/heketi.json
+    - name: Create Heketi User
+      ansible.builtin.user:
+        name: heketi
+        comment: Heketi System Account
+        system: yes
+        shell: /sbin/nologin
+        state: present
+    - name: Configure HEKETI_CLI_SERVER environment variable
+      ansible.builtin.lineinfile:
+        dest: /home/ubuntu/.profile
+        line: "export HEKETI_CLI_SERVER=http://k8s-file1.home:8080"
+        state: present
+    - name: Configure HEKETI_CLI_USER environment variable
+      ansible.builtin.lineinfile:
+        dest: /home/ubuntu/.profile
+        line: "export HEKETI_CLI_USER=admin"
+        state: present
+    - name: Configure HEKETI_CLI_KEY environment variable
+      ansible.builtin.lineinfile:
+        dest: /home/ubuntu/.profile
+        line: 'export HEKETI_CLI_KEY="mAqo1A4R4qlEXgMY"'
+        state: present
+    - name: Configure Heketi SystemD Service
+      ansible.builtin.copy:
+        content: "{{ lookup('file', 'configuration/heketi.service') }}"
+        dest: /etc/systemd/system/heketi.service
 
 - name: Kubernetes Common Configuration
   hosts: localk8s
@@ -208,17 +259,3 @@
       shell: microk8s enable registry
     - name: Enable Helm 3
       shell: microk8s enable helm3
-
-- name: Kubernetes File Server Configuration
-  hosts: fileservers
-  tasks:
-    - name: Install GlusterFS Server
-      apt:
-        name: glusterfs-server
-        update_cache: yes
-        state: latest
-    - name: Enable and Start GlusterFS Daemon
-      ansible.builtin.systemd:
-        name: glusterd
-        enabled: yes
-        state: started

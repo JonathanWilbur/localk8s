@@ -60,10 +60,6 @@ sudo ansible-playbook --connection=local --inventory=127.0.0.1, --limit=127.0.0.
 It does not seem to be stated explicitly in the documentation, but Heketi is
 apparently required for GlusterFS dynamic volume provisioning.
 
-1. `mkdir -p /data/heketi/{db,.ssh}`
-2. `chmod 700 /data/heketi/.ssh`
-3. `ssh-keygen -t rsa -b 2048 -f /data/heketi/.ssh/id_rsa`
-
 1. Download the binary:
 
 ```bash
@@ -85,13 +81,11 @@ sudo cp heketi/{heketi,heketi-cli} /usr/local/bin
 `sudo mkdir -p /var/lib/heketi`
 `sudo mkdir -p /etc/heketi`
 `sudo mkdir -p /var/log/heketi`
-
 `sudo cp heketi/heketi.json /etc/heketi`
 `sudo groupadd --system heketi`
 `sudo useradd -s /sbin/nologin --system -g heketi heketi`
 `sudo ssh-keygen -f /etc/heketi/heketi_key -t rsa -N ''`
 `sudo chown heketi:heketi /etc/heketi/heketi_key*`
-sudo mkdir -p /home/heketi/.ssh
 sudo cp /etc/heketi/heketi_key.pub /home/heketi/.ssh/authorized_keys
 sudo chown -R heketi:heketi /home/heketi
 sudo chmod 700 /home/heketi
@@ -104,7 +98,6 @@ sudo wipefs -a /dev/sdb
 
 sudo systemctl daemon-reload
 sudo systemctl enable --now heketi
-
 
 ssh-copy-id -i /etc/heketi/heketi_key.pub heketi@k8s-file1.home
 

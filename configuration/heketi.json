@@ -17,7 +17,7 @@
         "executor": "ssh",
         "sshexec": {
             "keyfile": "/etc/heketi/heketi_key",
-            "user": "heketi",
+            "user": "root",
             "port": "22",
             "fstab": "/etc/fstab",
             "mountopts": "rw,inode64,noatime,nouuid"

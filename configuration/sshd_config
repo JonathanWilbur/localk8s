@@ -9,7 +9,8 @@ MaxSessions 3
 MaxStartups 5
 PasswordAuthentication no
 PermitEmptyPasswords no
-PermitRootLogin no
+# Root login is needed for Heketi to manage drives.
+PermitRootLogin yes
 PrintLastLog yes
 PrintMotd yes
 Protocol 2
