@@ -1,0 +1,19 @@
+[Match]
+Name=eth0
+
+[Link]
+RequiredForOnline=no
+
+[Network]
+DHCP=ipv4
+LinkLocalAddressing=ipv6
+DNS=9.9.9.9
+DNSOverTLS=opportunistic
+
+# This is what makes it only resolve .home names. Everything else will go
+# through DNSCrypt-Proxy.
+DNSDefaultRoute=false
+
+[DHCP]
+RouteMetric=100
+UseMTU=true

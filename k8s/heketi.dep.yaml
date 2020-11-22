@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: heketi
+  namespace: storage
+spec:
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: heketi
+  template:
+    metadata:
+      labels:
+        app: heketi
+    spec:
+      terminationGracePeriodSeconds: 0
+      containers:
+      - name: heketi
+        image: heketi/heketi
+        imagePullPolicy: Always
+        env:
+          - name: HEKETI_EXECUTOR
+            value: ssh
+          - name: HEKETI_SSH_USER
+            value: ubuntu
+          - name: HEKETI_SSH_PORT
+            value: "22"
+          - name: HEKETI_SSH_KEYFILE
+            value: /root/.ssh/id_rsa
+          - name: HEKETI_ADMIN_KEY
+            valueFrom:
+              secretKeyRef:
+                name: heketi-secret
+                key: key
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+          - mountPath: /root/.ssh
+            name: heketi-ssh-key
+          - mountPath: /var/lib/heketi
+            name: heketi-db
+        readinessProbe:
+          timeoutSeconds: 3
+          initialDelaySeconds: 3
+          httpGet:
+            path: /hello
+            port: 8080
+        livenessProbe:
+          timeoutSeconds: 3
+          initialDelaySeconds: 3
+          httpGet:
+            path: /hello
+            port: 8080
+      volumes:
+        - name: heketi-ssh-key
+          hostPath:
+            path: /data/heketi/.ssh
+        - name: heketi-db
+          hostPath:
+            path: /data/heketi/db

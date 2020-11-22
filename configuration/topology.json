@@ -1,0 +1,31 @@
+{
+    "clusters": [
+        {
+            "nodes": [
+                {
+                    "node": {
+                        "hostnames": {
+                            "manage": [
+                                "k8s-file1.home"
+                            ],
+                            "storage": [
+                                "k8s-file1.home"
+                            ]
+                        },
+                        "zone": 1
+                    },
+                    "devices": [
+                        {
+                            "name": "/dev/sda",
+                            "destroydata": false
+                        },
+                        {
+                            "name": "/dev/sdb",
+                            "destroydata": false
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

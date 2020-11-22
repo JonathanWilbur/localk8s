@@ -1,2 +1,0 @@
-/mnt/store01     *(rw,sync,subtree_check)
-/mnt/store02     *(rw,sync,subtree_check)
