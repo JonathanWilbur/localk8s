@@ -180,6 +180,7 @@
         src: /home/ubuntu/heketi-client/bin/heketi-cli
         dest: /usr/local/bin/heketi-cli
         mode: '0644'
+        remote_src: yes
     - name: Create /var/lib/heketi directory
       file:
         path: /var/lib/heketi

@@ -6,10 +6,10 @@
                     "node": {
                         "hostnames": {
                             "manage": [
-                                "k8s-file1.home"
+                                "192.168.254.40"
                             ],
                             "storage": [
-                                "k8s-file1.home"
+                                "192.168.254.40"
                             ]
                         },
                         "zone": 1
