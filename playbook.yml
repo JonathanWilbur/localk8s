@@ -238,3 +238,29 @@
       shell: microk8s enable registry
     - name: Enable Helm 3
       shell: microk8s enable helm3
+    - name: Create storage namespace
+      k8s:
+        name: storage
+        api_version: v1
+        kind: Namespace
+        state: present
+    - name: Create OpenFaaS administrative namespace
+      k8s:
+        name: openfaas
+        api_version: v1
+        kind: Namespace
+        state: present
+    - name: Create OpenFaaS functions namespace
+      k8s:
+        name: openfaas-fn
+        api_version: v1
+        kind: Namespace
+        state: present
+    - name: Create Heketi Secret
+      k8s:
+        state: present
+        src: k8s/heketi.secret.yaml
+    - name: Create Heketi / GlusterFS StorageClass
+      k8s:
+        state: present
+        src: k8s/heketi.sc.yaml

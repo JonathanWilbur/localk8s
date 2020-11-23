@@ -3,6 +3,8 @@ basic_auth: true
 clusterRole: false
 createCRDs: true
 
+# You MUST keep the beta.kubernetes.io/arch selector, or it will default to
+# "amd64" (NOT "arm64") and obviously fail to match any Raspberry Pi workers.
 nodeSelector:
   beta.kubernetes.io/arch: arm64
   kubernetes.io/arch: arm64
