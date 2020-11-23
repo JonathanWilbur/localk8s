@@ -7,19 +7,9 @@ RequiredForOnline=no
 [Network]
 DHCP=ipv4
 LinkLocalAddressing=ipv6
-DNS=9.9.9.9
-DNSOverTLS=yes
 MulticastDNS=yes
 LLMNR=yes
-Domains=local home
 
 [DHCP]
 RouteMetric=100
 UseMTU=true
-UseDNS=no
-
-[DHCPv4]
-UseDNS=no
-
-[DHCPv6]
-UseDNS=no

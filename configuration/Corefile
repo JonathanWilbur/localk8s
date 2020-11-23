@@ -12,28 +12,9 @@
         fallthrough in-addr.arpa ip6.arpa
     }
     prometheus :9153
-    forward . tls://9.9.9.9 {
-        tls_servername dns.quad9.net
-        health_check 5s
-    }
+    forward . 1.1.1.1
     cache 30
     loop
     reload
     loadbalance
-}
-local:53 {
-    errors
-    cache 30
-    log . {
-        class error
-    }
-    forward . 192.168.254.254
-}
-home:53 {
-    errors
-    cache 30
-    log . {
-        class error
-    }
-    forward . 192.168.254.254
 }

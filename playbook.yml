@@ -2,8 +2,6 @@
 - name: Common Configuration
   hosts: "*"
   vars:
-    dnscrypt_listen_address: "127.0.2.1"
-    dnscrypt_listen_port: 53
     ssh_public_keys:
       - comment: "Home Desktop Public Key"
         key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDPUOa0+zQzDOCCHDOB++XHIFpOmkoIknABMeInPV83MMJwnu+aSaB6fIlmSmdva6ivCKflM45DfdB6JhHNDMJc/E5HP7qpE9M3g9PD3XbuafBDbpCHysfJC9p1QMxMBzlX8RiUC+g6u1S8WLV4vdjEYTwDldr34C/fuk+43FOSXvG0DoxiGik5KAEwdoZsy+IcTxhL0bZF7YlePh8Mhx8ABMylvgfpas2PRtwbs0LCWH+7sqMLH+H+kZnnSUxP7MsDrhMXiPPgW5SFZe1lPrrV+t0o9bk3KKArS7IN46fcUoV6Gkf7MdZCkAiXCfOWe4ONjH/A1b2pT0DAgGnp/GLN"
@@ -41,33 +39,6 @@
         update_cache: yes
         state: latest
     # I think SystemD already has this built-in.
-    - name: Uninstall avahi-daemon APT Package
-      apt:
-        name: avahi-daemon
-        update_cache: yes
-        state: absent
-    - name: Install whoopsie APT Package
-      apt:
-        name: whoopsie
-        update_cache: yes
-        state: absent
-    - name: Get the NordVPN Repository Debian File
-      ansible.builtin.get_url:
-        url: https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb
-        dest: /tmp/nordvpn.deb
-      ignore_errors: yes # This fails sometimes, but unless it fails the first time, it is not a problem.
-    - name: Install NordVPN Repository from the Debian File
-      ansible.builtin.apt:
-        deb: /tmp/nordvpn.deb
-    - name: Install NordVPN
-      apt:
-        name: nordvpn
-        update_cache: yes
-        state: present
-    - name: Make sure dnsmasq is not installed
-      apt:
-        name: dnsmasq
-        state: absent
     - name: Block metrics.ubuntu.com
       ansible.builtin.lineinfile:
         dest: /etc/hosts
@@ -94,23 +65,6 @@
         # This name is CRITICAL. It must have this name so that it overrides the
         # default configuration.
         dest: /etc/systemd/network/10-netplan-eth0.network
-    # I don't think this is even used by SystemD at all, but I set it not to
-    # get DNS information from DHCP anyway.
-    - name: Configure DHCP
-      ansible.builtin.copy:
-        content: "{{ lookup('file', 'configuration/dhclient.conf') }}"
-        dest: /etc/dhcp/dhclient.conf
-    - name: Enable and Restart SystemD-Resolved
-      ansible.builtin.systemd:
-        name: systemd-resolved
-        enabled: yes
-        state: restarted
-    # Restarting this is necessary for the per-link configuration to update.
-    - name: Enable and Restart SystemD-Networkd
-      ansible.builtin.systemd:
-        name: systemd-networkd
-        enabled: yes
-        state: restarted
     # Source: https://askubuntu.com/questions/1027532/how-to-opt-out-of-system-information-reports
     - name: Purge ubuntu-report
       apt:
@@ -132,15 +86,20 @@
         name: whoopsie
         purge: yes
         state: absent
+    - name: Purge avahi-daemon
+      apt:
+        name: avahi-daemon
+        purge: yes
+        state: absent
+    - name: Purge dnsmasq
+      apt:
+        name: dnsmasq
+        purge: yes
+        state: absent
     - name: Ensure ASLR
       sysctl:
         name: kernel.randomize_va_space
         value: "1"
-    # Not valid on all systems.
-    # - name: Ensure ExecShield
-    #   sysctl:
-    #     name: kernel.exec-shield
-    #     value: "1"
     - name: Disable IP Forwarding
       sysctl:
         name: net.ipv4.ip_forward
