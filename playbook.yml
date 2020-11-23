@@ -181,6 +181,18 @@
 - name: Kubernetes Common Configuration
   hosts: localk8s
   tasks:
+    - name: Load br_netfilter
+      modprobe:
+        name: br_netfilter
+        state: present
+    - name: Enable IPTables to see bridged IPv4 traffic
+      sysctl:
+        name: net.bridge.bridge-nf-call-iptables
+        value: "1"
+    - name: Enable IPTables to see bridged IPv6 traffic
+      sysctl:
+        name: net.bridge.bridge-nf-call-ip6tables
+        value: "1"
     - name: Enable IPv4 Forwarding
       sysctl:
         name: net.ipv4.ip_forward
