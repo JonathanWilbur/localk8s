@@ -41,9 +41,14 @@
         update_cache: yes
         state: latest
     # I think SystemD already has this built-in.
-    - name: Install avahi-daemon APT Package
+    - name: Uninstall avahi-daemon APT Package
       apt:
         name: avahi-daemon
+        update_cache: yes
+        state: absent
+    - name: Install whoopsie APT Package
+      apt:
+        name: whoopsie
         update_cache: yes
         state: absent
     - name: Get the NordVPN Repository Debian File
@@ -67,6 +72,11 @@
       ansible.builtin.lineinfile:
         dest: /etc/hosts
         line: "0.0.0.0 metrics.ubuntu.com"
+        state: present
+    - name: Block daisy.ubuntu.com
+      ansible.builtin.lineinfile:
+        dest: /etc/hosts
+        line: "0.0.0.0 daisy.ubuntu.com"
         state: present
     - name: Block popcon.ubuntu.com
       ansible.builtin.lineinfile:
