@@ -11,7 +11,7 @@ DNS=9.9.9.9
 DNSOverTLS=yes
 MulticastDNS=yes
 LLMNR=yes
-Domains=home
+Domains=local home
 
 [DHCP]
 RouteMetric=100

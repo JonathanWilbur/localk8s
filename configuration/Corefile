@@ -1,0 +1,39 @@
+.:53 {
+    errors
+    health {
+        lameduck 5s
+    }
+    ready
+    log . {
+        class error
+    }
+    kubernetes cluster.local in-addr.arpa ip6.arpa {
+        pods insecure
+        fallthrough in-addr.arpa ip6.arpa
+    }
+    prometheus :9153
+    forward . tls://9.9.9.9 {
+        tls_servername dns.quad9.net
+        health_check 5s
+    }
+    cache 30
+    loop
+    reload
+    loadbalance
+}
+local:53 {
+    errors
+    cache 30
+    log . {
+        class error
+    }
+    forward . 192.168.254.254
+}
+home:53 {
+    errors
+    cache 30
+    log . {
+        class error
+    }
+    forward . 192.168.254.254
+}
