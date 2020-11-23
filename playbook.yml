@@ -54,17 +54,6 @@
         dest: /etc/hosts
         line: "0.0.0.0 popcon.ubuntu.com"
         state: present
-    - name: Configure Systemd Resolved
-      ansible.builtin.copy:
-        content: "{{ lookup('file', 'configuration/resolved.conf') }}"
-        dest: /etc/systemd/resolved.conf
-    # This is necessary to get the system to use DNS over TLS.
-    - name: Configure eth0
-      ansible.builtin.copy:
-        content: "{{ lookup('file', 'configuration/eth0.network') }}"
-        # This name is CRITICAL. It must have this name so that it overrides the
-        # default configuration.
-        dest: /etc/systemd/network/10-netplan-eth0.network
     # Source: https://askubuntu.com/questions/1027532/how-to-opt-out-of-system-information-reports
     - name: Purge ubuntu-report
       apt:
@@ -91,19 +80,10 @@
         name: avahi-daemon
         purge: yes
         state: absent
-    - name: Purge dnsmasq
-      apt:
-        name: dnsmasq
-        purge: yes
-        state: absent
     - name: Ensure ASLR
       sysctl:
         name: kernel.randomize_va_space
         value: "1"
-    - name: Disable IP Forwarding
-      sysctl:
-        name: net.ipv4.ip_forward
-        value: "0"
     - name: Periodically delete command history
       ansible.builtin.cron:
         name: Delete command history
@@ -117,11 +97,6 @@
         line: '\1TMOUT=1200'
         state: present
         backrefs: yes
-    - name: Install GlusterFS Client
-      apt:
-        name: glusterfs-client
-        update_cache: yes
-        state: latest
 
 - name: File Server Configuration
   hosts: fileservers
@@ -206,6 +181,16 @@
 - name: Kubernetes Common Configuration
   hosts: localk8s
   tasks:
+    - name: Enable IPv4 Forwarding
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: "1"
+    - name: Enable IPv6 Forwarding
+      sysctl:
+        name: net.ipv6.conf.all.forwarding
+        value: "1"
+    - name: Configure Routing
+      shell: ufw default allow routed
     - name: Enable cgroups
       ansible.builtin.copy:
         content: "{{ lookup('file', 'configuration/cmdline.txt') }}"
@@ -217,13 +202,18 @@
         state: present
         # I had catastrophically high CPU usage with 1.19. 1.18 works.
         channel: "1.18/stable"
-    - name: Start Microk8s
-      shell: microk8s start
     - name: Set File Descriptor Limits for Microk8s
       ansible.builtin.lineinfile:
         dest: /var/snap/microk8s/current/args/containerd-env
         line: "ulimit -n 65536"
         state: present
+    - name: Install GlusterFS Client
+      apt:
+        name: glusterfs-client
+        update_cache: yes
+        state: latest
+    - name: Start Microk8s
+      shell: microk8s start
 
 - name: Kubernetes Master Configuration
   hosts: masters
