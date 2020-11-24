@@ -129,9 +129,14 @@
         name: glusterd
         enabled: yes
         state: started
-    - name: Download Heketi
+    - name: Download Heketi CLI
       unarchive:
         src: https://github.com/heketi/heketi/releases/download/v10.1.0/heketi-client-v10.1.0.linux.arm64.tar.gz
+        dest: /home/ubuntu
+        remote_src: yes
+    - name: Download Heketi
+      unarchive:
+        src: https://github.com/heketi/heketi/releases/download/v10.1.0/heketi-v10.1.0.linux.arm64.tar.gz
         dest: /home/ubuntu
         remote_src: yes
     - name: Copy heketi-cli to /usr/local/bin
@@ -142,7 +147,7 @@
         remote_src: yes
     - name: Copy heketi to /usr/local/bin
       copy:
-        src: /home/ubuntu/heketi-client/bin/heketi
+        src: /home/ubuntu/heketi/bin/heketi
         dest: /usr/local/bin/heketi
         mode: '0555'
         remote_src: yes
