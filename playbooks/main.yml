@@ -147,7 +147,7 @@
         remote_src: yes
     - name: Copy heketi to /usr/local/bin
       copy:
-        src: /home/ubuntu/heketi/bin/heketi
+        src: /home/ubuntu/heketi/heketi
         dest: /usr/local/bin/heketi
         mode: '0555'
         remote_src: yes
