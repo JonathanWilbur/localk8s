@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wikijs
+spec:
+  selector:
+    matchLabels:
+      app: wikijs
+  template:
+    metadata:
+      labels:
+        app: wikijs
+    spec:
+      containers:
+      - name: wikijs
+        image: "ghcr.io/linuxserver/wikijs:arm64v8-latest"
+        env:
+          - name: PUID
+            value: "1000"
+          - name: PGID
+            value: "1000"
+          - name: TZ
+            value: "America/New_York"
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "1000m"
+            memory: "1Gi"
+        ports:
+        - containerPort: 3000
+          hostPort: 80
+          protocol: TCP
+        volumeMounts:
+          - mountPath: /data
+            name: data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: wikijs-pvc

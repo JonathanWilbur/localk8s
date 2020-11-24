@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: verdaccio
+spec:
+  selector:
+    matchLabels:
+      app: verdaccio
+  tolerations:
+    - key: role
+      value: fileserver
+  template:
+    metadata:
+      labels:
+        app: verdaccio
+    spec:
+      containers:
+      - name: verdaccio
+        image: verdaccio/verdaccio:latest
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 4873
+        volumeMounts:
+          - mountPath: /verdaccio/storage
+            name: storage
+          - mountPath: /verdaccio/conf
+            name: config
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: verdaccio-storage-pvc
+        - name: config
+          configMap:
+            name: verdaccio-config
+            items:
+              - key: config
+                path: "config.yaml"

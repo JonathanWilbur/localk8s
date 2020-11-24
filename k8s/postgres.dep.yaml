@@ -16,6 +16,9 @@ spec:
     spec:
       nodeSelector:
         role: database
+      tolerations:
+        - key: role
+          value: database
       containers:
       - name: postgres
         image: postgres:latest

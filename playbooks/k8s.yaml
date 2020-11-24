@@ -1,0 +1,135 @@
+# Tasks that require a fully-configured Kubernetes cluster.
+- name: Kubernetes Master Configuration
+  hosts: masters
+  vars:
+    namespaces:
+      - storage
+      - openfaas
+      - openfaas-fn
+    configmaps:
+      - rabbitmq
+      - verdaccio
+    secrets:
+      - heketi
+    services:
+      - mongodb
+      - postgres
+      - minio
+      - gitea
+      - redis
+      - rabbitmq
+      - wekan
+      - wikijs
+      - ghost
+      - concourse
+      - superset
+    storage_classes:
+      - glusterfs
+    volumes:
+      - database-sda1
+      - database-sdb1
+    pvcs:
+      - mongodb
+      - postgres
+      - concourse
+      - ghost
+      - gitea
+      - minio
+      - verdaccio.storage
+      - wikijs
+    deployments:
+      - redis
+      - rabbitmq
+    network_policies:
+      - no-ingress
+      - no-egress
+  tasks:
+    - name: Label master node
+      shell: kubectl label nodes --overwrite k8s-master1 role=master
+    - name: Label file storage node
+      shell: kubectl label nodes --overwrite k8s-master1 role=fileserver
+    - name: Label database node
+      shell: kubectl label nodes --overwrite k8s-master1 role=database
+    - name: Label worker nodes
+      shell: kubectl label nodes --overwrite k8s-worker1 k8s-worker2 k8s-worker3 role=worker
+    - name: Taint master nodes
+      shell: "kubectl taint nodes k8s-master1 role=master:NoSchedule"
+    - name: Taint database nodes
+      shell: "kubectl taint nodes k8s-master1 role=database:NoExecute"
+    - name: Taint fileserver nodes
+      shell: "kubectl taint nodes k8s-master1 role=fileserver:NoExecute"
+    - name: Create Kubernetes namespace
+      k8s:
+        name: "{{ item }}"
+        api_version: v1
+        kind: Namespace
+        state: present
+      loop: "{{ kubernetes_namespaces }}"
+      tags:
+        - namespace
+    - name: Create Kubernetes network policies
+      k8s:
+        state: present
+        src: "k8s/{{ item }}.np.yaml"
+      loop: "{{ network_policies }}"
+      tags:
+        - networkpolicy
+    - name: Create Kubernetes storage class
+      k8s:
+        state: present
+        src: "k8s/{{ item }}.sc.yaml"
+      loop: "{{ storage_classes }}"
+      tags:
+        - storageclass
+    - name: Create Kubernetes secret
+      k8s:
+        state: present
+        src: "k8s/{{ item }}.secret.yaml"
+      loop: "{{ secrets }}"
+      tag:
+        - secret
+    - name: Create Kubernetes configmap
+      k8s:
+        state: present
+        src: "k8s/{{ item }}.cm.yaml"
+      loop: "{{ configmaps }}"
+      tag:
+        - configmap
+    - name: Create Kubernetes persistent volume
+      k8s:
+        state: present
+        src: "k8s/{{ item }}.pv.yaml"
+      loop: "{{ volumes }}"
+      tags:
+        - storage
+        - pv
+    - name: Create Kubernetes persistent volume claims
+      k8s:
+        state: present
+        src: "k8s/{{ item }}.pvc.yaml"
+      loop: "{{ pvcs }}"
+      tags:
+        - storage
+        - pvc
+    - name: Create Kubernetes service
+      k8s:
+        state: present
+        src: "k8s/{{ item }}.svc.yaml"
+      loop: "{{ services }}"
+      tags:
+        - service
+    - name: Create Kubernetes deployment
+      k8s:
+        state: present
+        src: "k8s/{{ item }}.dep.yaml"
+      loop: "{{ deployments }}"
+      tags:
+        - deployment
+    - name: Delete test PVC
+      k8s:
+        state: absent
+        src: k8s/test.pvc.yaml
+      tags:
+        - storage
+        - pvc
+        - cleanup

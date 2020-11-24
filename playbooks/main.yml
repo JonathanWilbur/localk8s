@@ -2,6 +2,17 @@
 - name: Common Configuration
   hosts: "*"
   vars:
+    timezone: "America/New_York"
+    # Source: https://askubuntu.com/questions/1027532/how-to-opt-out-of-system-information-reports
+    telemetry_packages:
+      - ubuntu-report
+      - popularity-contest
+      - apport
+      - whoopsie
+    telemetry_hosts:
+      - metrics.ubuntu.com
+      - daisy.ubuntu.com
+      - popcon.ubuntu.com
     ssh_public_keys:
       - comment: "Home Desktop Public Key"
         key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDPUOa0+zQzDOCCHDOB++XHIFpOmkoIknABMeInPV83MMJwnu+aSaB6fIlmSmdva6ivCKflM45DfdB6JhHNDMJc/E5HP7qpE9M3g9PD3XbuafBDbpCHysfJC9p1QMxMBzlX8RiUC+g6u1S8WLV4vdjEYTwDldr34C/fuk+43FOSXvG0DoxiGik5KAEwdoZsy+IcTxhL0bZF7YlePh8Mhx8ABMylvgfpas2PRtwbs0LCWH+7sqMLH+H+kZnnSUxP7MsDrhMXiPPgW5SFZe1lPrrV+t0o9bk3KKArS7IN46fcUoV6Gkf7MdZCkAiXCfOWe4ONjH/A1b2pT0DAgGnp/GLN"
@@ -10,7 +21,7 @@
   tasks:
     - name: Set Timezone
       timezone:
-        name: America/New_York
+        name: "{{ timezone }}"
     - name: Configure OpenSSH
       ansible.builtin.copy:
         content: "{{ lookup('file', 'configuration/sshd_config') }}"
@@ -33,48 +44,32 @@
         name: secure-delete
         update_cache: yes
         state: latest
+      tags:
+        - privacy
     - name: Install hexyl APT Package
       apt:
         name: hexyl
         update_cache: yes
         state: latest
+      tags:
+        - luxury
     # I think SystemD already has this built-in.
-    - name: Block metrics.ubuntu.com
+    - name: Block telemetry hosts
       ansible.builtin.lineinfile:
         dest: /etc/hosts
-        line: "0.0.0.0 metrics.ubuntu.com"
+        line: "0.0.0.0 {{ item }}"
         state: present
-    - name: Block daisy.ubuntu.com
-      ansible.builtin.lineinfile:
-        dest: /etc/hosts
-        line: "0.0.0.0 daisy.ubuntu.com"
-        state: present
-    - name: Block popcon.ubuntu.com
-      ansible.builtin.lineinfile:
-        dest: /etc/hosts
-        line: "0.0.0.0 popcon.ubuntu.com"
-        state: present
-    # Source: https://askubuntu.com/questions/1027532/how-to-opt-out-of-system-information-reports
-    - name: Purge ubuntu-report
+      loop: "{{ telemetry_hosts }}"
+      tags:
+        - privacy
+    - name: Purge telemetry package
       apt:
-        name: ubuntu-report
+        name: "{{ item }}"
         purge: yes
         state: absent
-    - name: Purge popularity-contest
-      apt:
-        name: popularity-contest
-        purge: yes
-        state: absent
-    - name: Purge apport
-      apt:
-        name: apport
-        purge: yes
-        state: absent
-    - name: Purge whoopsie
-      apt:
-        name: whoopsie
-        purge: yes
-        state: absent
+      loop: "{{ telemetry_packages }}"
+      tags:
+        - privacy
     - name: Purge avahi-daemon
       apt:
         name: avahi-daemon
@@ -84,12 +79,16 @@
       sysctl:
         name: kernel.randomize_va_space
         value: "1"
+      tags:
+        - security
     - name: Periodically delete command history
       ansible.builtin.cron:
         name: Delete command history
         job: "rm /home/ubuntu/.bash_history"
         special_time: weekly
         state: present
+      tags:
+        - privacy
     - name: Automatically logout users
       ansible.builtin.lineinfile:
         dest: /etc/profile
@@ -97,10 +96,19 @@
         line: '\1TMOUT=1200'
         state: present
         backrefs: yes
+      tags:
+        - security
 
 - name: File Server Configuration
   hosts: fileservers
   tasks:
+    - name: Create Heketi User
+      ansible.builtin.user:
+        name: heketi
+        comment: Heketi System Account
+        system: yes
+        shell: /sbin/nologin
+        state: present
     - name: Install mdadm APT Package
       apt:
         name: mdadm
@@ -126,11 +134,17 @@
         src: https://github.com/heketi/heketi/releases/download/v10.1.0/heketi-client-v10.1.0.linux.arm64.tar.gz
         dest: /home/ubuntu
         remote_src: yes
-    - name: Copy file with owner and permissions
+    - name: Copy heketi-cli to /usr/local/bin
       copy:
         src: /home/ubuntu/heketi-client/bin/heketi-cli
         dest: /usr/local/bin/heketi-cli
-        mode: '0644'
+        mode: '0555'
+        remote_src: yes
+    - name: Copy heketi to /usr/local/bin
+      copy:
+        src: /home/ubuntu/heketi-client/bin/heketi
+        dest: /usr/local/bin/heketi
+        mode: '0555'
         remote_src: yes
     - name: Create /var/lib/heketi directory
       file:
@@ -151,13 +165,9 @@
       ansible.builtin.copy:
         content: "{{ lookup('file', 'configuration/heketi.json') }}"
         dest: /etc/heketi/heketi.json
-    - name: Create Heketi User
-      ansible.builtin.user:
-        name: heketi
-        comment: Heketi System Account
-        system: yes
-        shell: /sbin/nologin
-        state: present
+        owner: heketi
+        group: heketi
+        mode: '0600'
     - name: Configure HEKETI_CLI_SERVER environment variable
       ansible.builtin.lineinfile:
         dest: /home/ubuntu/.profile
@@ -177,32 +187,108 @@
       ansible.builtin.copy:
         content: "{{ lookup('file', 'configuration/heketi.service') }}"
         dest: /etc/systemd/system/heketi.service
+    - name: Get Heketi Topology File
+      ansible.builtin.copy:
+        content: "{{ lookup('file', 'configuration/topology.json') }}"
+        dest: /home/heketi/topology.json
+        owner: heketi
+        group: heketi
+        mode: '0400'
+    - name: Load Heketi Topology
+      shell: heketi-cli node list || heketi-cli topology load --json=/home/heketi/topology.json
+
+- name: Database Server Configuration
+  hosts: databases
+  vars:
+    stores:
+      - device: /dev/sda
+        fs: xfs
+        mount: /data/sda1
+      - device: /dev/sdb
+        fs: xfs
+        mount: /data/sdb1
+  tasks:
+    - name: Create /data directory
+      file:
+        path: /data
+        state: directory
+        mode: '0755'
+    - name: Create mount directory
+      file:
+        path: "{{ item.mount }}"
+        state: directory
+        mode: '0755'
+      loop: "{{ stores }}"
+    - name: Create partition
+      parted:
+        device: "{{ item.device }}"
+        number: 1
+        state: present
+        fs_type: "{{ item.fs }}"
+      loop: "{{ stores }}"
+    - name: Format partition
+      filesystem:
+        fstype: "{{ item.fs }}"
+        dev: "{{ item.device }}1"
+        force: no
+      loop: "{{ stores }}"
+    - name: Mount partition
+      mount:
+        path: "{{ item.mount }}"
+        src: "{{ item.device }}1"
+        fstype: "{{ item.fs }}"
+        state: mounted
+      loop: "{{ stores }}"
+    - name: Periodically zero freed storage
+      ansible.builtin.cron:
+        name: "Zero Freed Storage on {{ item.mount }}"
+        job: "sfill -lf {{ item.mount }}"
+        special_time: monthly
+        state: present
+      loop: "{{ stores }}"
+      tags:
+        - privacy
 
 - name: Kubernetes Common Configuration
   hosts: localk8s
+  vars:
+    # I had catastrophically high CPU usage with 1.19. 1.18 works.
+    microk8s_version: "1.18/stable"
   tasks:
     - name: Load br_netfilter
       modprobe:
         name: br_netfilter
         state: present
+      tags:
+        - network
     - name: Enable IPTables to see bridged IPv4 traffic
       sysctl:
         name: net.bridge.bridge-nf-call-iptables
         value: "1"
+      tags:
+        - network
     - name: Enable IPTables to see bridged IPv6 traffic
       sysctl:
         name: net.bridge.bridge-nf-call-ip6tables
         value: "1"
+      tags:
+        - network
     - name: Enable IPv4 Forwarding
       sysctl:
         name: net.ipv4.ip_forward
         value: "1"
+      tags:
+        - network
     - name: Enable IPv6 Forwarding
       sysctl:
         name: net.ipv6.conf.all.forwarding
         value: "1"
+      tags:
+        - network
     - name: Configure Routing
       shell: ufw default allow routed
+      tags:
+        - network
     - name: Enable cgroups
       ansible.builtin.copy:
         content: "{{ lookup('file', 'configuration/cmdline.txt') }}"
@@ -212,8 +298,7 @@
         name: microk8s
         classic: yes
         state: present
-        # I had catastrophically high CPU usage with 1.19. 1.18 works.
-        channel: "1.18/stable"
+        channel: "{{ microk8s_version }}"
     - name: Set File Descriptor Limits for Microk8s
       ansible.builtin.lineinfile:
         dest: /var/snap/microk8s/current/args/containerd-env
@@ -224,11 +309,18 @@
         name: glusterfs-client
         update_cache: yes
         state: latest
+      tags:
+        - storage
     - name: Start Microk8s
       shell: microk8s start
     - name: Install kubectl snap
       snap:
         name: kubectl
+        classic: yes
+        state: present
+    - name: Install helm snap
+      snap:
+        name: helm
         classic: yes
         state: present
     - name: Create /home/ubuntu/.kube directory
@@ -238,49 +330,24 @@
         mode: '0755'
     - name: Copy configuration to /home/ubuntu/.kube/config
       shell: microk8s config > /home/ubuntu/.kube/config
-    - name: Label master node
-      shell: kubectl label nodes --overwrite k8s-master1 role=master
-    - name: Label file storage node
-      shell: kubectl label nodes --overwrite k8s-master1 role=fileserver
-    - name: Label database node
-      shell: kubectl label nodes --overwrite k8s-master1 role=database
-    - name: Label worker nodes
-      shell: kubectl label nodes --overwrite k8s-worker1 k8s-worker2 k8s-worker3 role=worker
 
 - name: Kubernetes Master Configuration
   hosts: masters
+  vars:
+    microk8s_addons:
+      - dns
+      - dashboard
+      - registry
+      - helm3
   tasks:
-    - name: Enable DNS
-      shell: microk8s enable dns
-    - name: Enable Dashboard
-      shell: microk8s enable dashboard
-    - name: Enable Registry
-      shell: microk8s enable registry
-    - name: Enable Helm 3
-      shell: microk8s enable helm3
-    - name: Create storage namespace
-      k8s:
-        name: storage
-        api_version: v1
-        kind: Namespace
-        state: present
-    - name: Create OpenFaaS administrative namespace
-      k8s:
-        name: openfaas
-        api_version: v1
-        kind: Namespace
-        state: present
-    - name: Create OpenFaaS functions namespace
-      k8s:
-        name: openfaas-fn
-        api_version: v1
-        kind: Namespace
-        state: present
-    - name: Create Heketi Secret
-      k8s:
-        state: present
-        src: k8s/heketi.secret.yaml
-    - name: Create Heketi / GlusterFS StorageClass
-      k8s:
-        state: present
-        src: k8s/heketi.sc.yaml
+    - name: Enable Microk8s Addon
+      shell: "microk8s enable {{ item }}"
+      loop: "{{ microk8s_addons }}"
+      tags:
+        - microk8s
+        - microk8s-addon
+    # - name: Run Kubernetes Configurations
+    #   include_tasks: tasks/k8s-cluster.yaml
+    #   tags:
+    #     - k8s
+    #     - k8s-cluster

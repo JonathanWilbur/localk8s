@@ -3,18 +3,19 @@
 ## To Do
 
 - [ ] Configure Email Reports / Alerts?
-- [ ] Ensure that blocked domains do not resolve.
+- [x] Ensure that blocked domains do not resolve.
 - [ ] Test re-running Ansible after adding data to USB drives to ensure it persists.
-- [ ] Deploy [Docker Image Registry](https://docs.docker.com/registry/deploying/)
-- [ ] Deploy [Gitea](https://docs.gitea.io/en-us/install-with-docker/)
+- [x] Deploy [Docker Image Registry](https://docs.docker.com/registry/deploying/)
+- [x] Deploy [Gitea](https://docs.gitea.io/en-us/install-with-docker/)
 - [ ] Deploy Concourse or Jenkins X
-- [ ] Deploy [Verdaccio](https://verdaccio.org/docs/en/installation)
+- [ ] Deploy [Verdaccio](https://verdaccio.org/docs/en/installation) **Blocked on Docker Image being only AMD64**
 - [ ] Deploy A Rust Crate Repo? (I can't seem to find one.)
 - [ ] Deploy MongoDB
-- [ ] Deploy RabbitMQ
-- [ ] Deploy MariaDB?
+- [x] Deploy RabbitMQ
 - [ ] Deploy [WikiJS](https://docs.requarks.io/install/docker)
 - [ ] Deploy [Apache Superset](https://superset.apache.org/docs/installation/installing-superset-using-docker-compose)
+- [ ] Add `download` tag
+- [ ] Taint the master node
 
 See: https://github.com/trimstray/linux-hardening-checklist
 https://viktorvan.github.io/kubernetes/kubernetes-on-raspberry-pi/
@@ -30,7 +31,8 @@ type $env:USERPROFILE\.ssh\id_rsa.pub | ssh {IP-ADDRESS-OR-FQDN} "cat >> .ssh/au
 4. Update all packages.
 5. Install Ansible.
 6. Git clone this repository.
-7. Run `ansible-playbook`, targeting the hosts.
+7. Run `ansible-playbook`, only targeting the databases, so that storage can get set up.
+8. Run `ansible-playbook`, targeting the hosts.
 
 Run locally with:
 

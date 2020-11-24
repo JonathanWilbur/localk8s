@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+spec:
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      nodeSelector:
+        role: fileserver
+      tolerations:
+        - key: role
+          value: fileserver
+      containers:
+      - name: minio
+        image: minio/minio
+        command:
+          - minio
+          - server
+          - /data
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        env:
+          - name: MINIO_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                key: accessKey
+                name: minio-secret
+          - name: MINIO_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                key: secretKey
+                name: minio-secret
+        ports:
+        - containerPort: 9000
+          hostPort: 80
+          protocol: TCP
+        volumeMounts:
+          - mountPath: /data
+            name: data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: minio-pvc
