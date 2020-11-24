@@ -226,6 +226,26 @@
         state: latest
     - name: Start Microk8s
       shell: microk8s start
+    - name: Install kubectl snap
+      snap:
+        name: kubectl
+        classic: yes
+        state: present
+    - name: Create /home/ubuntu/.kube directory
+      file:
+        path: /home/ubuntu/.kube
+        state: directory
+        mode: '0755'
+    - name: Copy configuration to /home/ubuntu/.kube/config
+      shell: microk8s config > /home/ubuntu/.kube/config
+    - name: Label master node
+      shell: kubectl label nodes --overwrite k8s-master1 role=master
+    - name: Label file storage node
+      shell: kubectl label nodes --overwrite k8s-master1 role=fileserver
+    - name: Label database node
+      shell: kubectl label nodes --overwrite k8s-master1 role=database
+    - name: Label worker nodes
+      shell: kubectl label nodes --overwrite k8s-worker1 k8s-worker2 k8s-worker3 role=worker
 
 - name: Kubernetes Master Configuration
   hosts: masters

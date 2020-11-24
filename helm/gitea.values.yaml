@@ -1,0 +1,55 @@
+replicaCount: 1
+clusterDomain: cluster.local
+image:
+  repository: gitea/gitea
+  version: 1.12.6
+  pullPolicy: Always
+imagePullSecrets: []
+service:
+  http:
+    type: NodePort
+    port: 44804 # "GIT+H"
+  ssh:
+    type: NodePort
+    port: 44807 # "GIT+S"
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+nodeSelector:
+  role: fileserver
+tolerations: []
+affinity: {}
+statefulset:
+  env: []
+  terminationGracePeriodSeconds: 60
+persistence:
+  enabled: true
+  existingClaim: gitea-pvc
+gitea:
+  admin:
+    username: gitea_admin
+    password: 7137E672-90DB-4E35-B70A-352044E5A7EC
+    email: "gitea@local.domain"
+  config:
+    database:
+      DB_TYPE: postgresql
+      HOST: 127.0.0.1:3306
+      NAME: gitea
+      USER: gitea
+      PASSWD: gitea
+      SCHEMA: gitea
+  database:
+    builtIn:
+      postgresql:
+        enabled: false
+      mysql:
+        enabled: false
+      mariadb:
+        enabled: false
+  cache:
+    builtIn:
+      enabled: true

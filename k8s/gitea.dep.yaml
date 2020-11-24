@@ -1,0 +1,45 @@
+# This does not integrate with the database intentionally to mitigate risks.
+# There is little value in this integrating with the database, since it works
+# just fine with the local SQLite instance.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitea-deployment
+  labels:
+    app: gitea
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitea
+  template:
+    metadata:
+      labels:
+        app: gitea
+    spec:
+      nodeSelector:
+        role: fileserver
+      containers:
+      - name: gitea
+        image: gitea/gitea:1.12.6
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "500m"
+          limits:
+            memory: "256Mi"
+            cpu: "1000m"
+        ports:
+          - containerPort: 3000
+            hostPort: 3000
+            protocol: TCP
+          - containerPort: 22
+            hostPort: 222
+            protocol: TCP
+        volumeMounts:
+          - mountPath: /data
+            name: gitea-volume
+      volumes:
+        - name: gitea-volume
+          persistentVolumeClaim:
+            claimName: gitea-pvc

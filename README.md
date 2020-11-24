@@ -2,7 +2,6 @@
 
 ## To Do
 
-- [ ] Label storage nodes `role=fileserver` or `role=dbserver`
 - [ ] Configure Email Reports / Alerts?
 - [ ] Ensure that blocked domains do not resolve.
 - [ ] Test re-running Ansible after adding data to USB drives to ensure it persists.
