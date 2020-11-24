@@ -24,7 +24,7 @@
         name: "{{ timezone }}"
     - name: Configure OpenSSH
       ansible.builtin.copy:
-        content: "{{ lookup('file', 'configuration/sshd_config') }}"
+        content: "{{ lookup('file', '../configuration/sshd_config') }}"
         dest: /etc/ssh/sshd_config
     - name: Install SSH Public Keys
       authorized_key:
@@ -163,7 +163,7 @@
         mode: '0755'
     - name: Configure Heketi
       ansible.builtin.copy:
-        content: "{{ lookup('file', 'configuration/heketi.json') }}"
+        content: "{{ lookup('file', '../configuration/heketi.json') }}"
         dest: /etc/heketi/heketi.json
         owner: heketi
         group: heketi
@@ -185,11 +185,11 @@
         state: present
     - name: Configure Heketi SystemD Service
       ansible.builtin.copy:
-        content: "{{ lookup('file', 'configuration/heketi.service') }}"
+        content: "{{ lookup('file', '../configuration/heketi.service') }}"
         dest: /etc/systemd/system/heketi.service
     - name: Get Heketi Topology File
       ansible.builtin.copy:
-        content: "{{ lookup('file', 'configuration/topology.json') }}"
+        content: "{{ lookup('file', '../configuration/topology.json') }}"
         dest: /home/heketi/topology.json
         owner: heketi
         group: heketi
@@ -291,7 +291,7 @@
         - network
     - name: Enable cgroups
       ansible.builtin.copy:
-        content: "{{ lookup('file', 'configuration/cmdline.txt') }}"
+        content: "{{ lookup('file', '../configuration/cmdline.txt') }}"
         dest: /boot/firmware/cmdline.txt
     - name: Install microk8s snap
       snap:
