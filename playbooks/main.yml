@@ -335,6 +335,8 @@
         mode: '0755'
     - name: Copy configuration to /home/ubuntu/.kube/config
       shell: microk8s config > /home/ubuntu/.kube/config
+    - name: Copy configuration to /root/.kube/config
+      shell: microk8s config > /root/.kube/config
 
 - name: Kubernetes Master Configuration
   hosts: masters
