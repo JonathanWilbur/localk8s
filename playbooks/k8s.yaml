@@ -86,14 +86,14 @@
         state: present
         src: "k8s/{{ item }}.secret.yaml"
       loop: "{{ secrets }}"
-      tag:
+      tags:
         - secret
     - name: Create Kubernetes configmap
       k8s:
         state: present
         src: "k8s/{{ item }}.cm.yaml"
       loop: "{{ configmaps }}"
-      tag:
+      tags:
         - configmap
     - name: Create Kubernetes persistent volume
       k8s:
