@@ -101,6 +101,10 @@
 
 - name: File Server Configuration
   hosts: fileservers
+  vars:
+    heketi_url: http://k8s-file1.local:8080
+    heketi_username: admin
+    heketi_password: mAqo1A4R4qlEXgMY
   tasks:
     - name: Create Heketi User
       ansible.builtin.user:
@@ -201,6 +205,10 @@
         mode: '0400'
     - name: Load Heketi Topology
       shell: heketi-cli node list || heketi-cli topology load --json=/home/heketi/topology.json
+      environment:
+        HEKETI_CLI_SERVER: "{{ heketi_url }}"
+        HEKETI_CLI_USER: "{{ heketi_username }}"
+        HEKETI_CLI_KEY: "{{ heketi_password }}"
 
 - name: Database Server Configuration
   hosts: databases
