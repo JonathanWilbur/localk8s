@@ -53,11 +53,11 @@
     - name: Label worker nodes
       shell: kubectl label nodes --overwrite k8s-worker1 k8s-worker2 k8s-worker3 role=worker
     - name: Taint master nodes
-      shell: "kubectl taint nodes k8s-master1 role=master:NoSchedule"
+      shell: "kubectl taint nodes --overwrite k8s-master1 role=master:NoSchedule"
     - name: Taint database nodes
-      shell: "kubectl taint nodes k8s-master1 role=database:NoExecute"
+      shell: "kubectl taint nodes --overwrite k8s-master1 role=database:NoExecute"
     - name: Taint fileserver nodes
-      shell: "kubectl taint nodes k8s-master1 role=fileserver:NoExecute"
+      shell: "kubectl taint nodes --overwrite k8s-master1 role=fileserver:NoExecute"
     - name: Create Kubernetes namespace
       k8s:
         name: "{{ item }}"
