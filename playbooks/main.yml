@@ -237,7 +237,6 @@
         device: "{{ item.device }}"
         number: 1
         state: present
-        fs_type: "{{ item.fs }}"
       loop: "{{ stores }}"
     - name: Format partition
       filesystem:
